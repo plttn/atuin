@@ -102,6 +102,7 @@ mod tests {
             deleted_at: None,
             shell: Some("zsh".into()),
             author_kind: None,
+            host_id: None,
         }
     }
 

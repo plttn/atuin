@@ -6,7 +6,7 @@ use atuin_common::rmp::encode::{self, ByteBuf, EncodeError};
 use atuin_common::secrets::contains_secret;
 use atuin_common::time::OffsetDateTimeExt;
 use atuin_common::utils::{normalize_optional_string, uuid_v7};
-use atuin_domain::record::{CmdOrigin, DecryptedData, UNKNOWN_USER};
+use atuin_domain::record::{CmdOrigin, DecryptedData, HostId, UNKNOWN_USER};
 use easy_cast::Conv;
 use eyre::Result;
 use serde::{Deserialize, Serialize};
@@ -375,6 +375,12 @@ pub struct History {
     ///
     /// When this is `None`, [`History::is_agent`] guesses from the author name.
     pub author_kind: Option<AuthorKind>,
+    /// The Atuin install that ran the command, when that is known.
+    ///
+    /// This comes from the record store's host metadata, so it isn't part of the serialized
+    /// payload. It is `None` when the entry predates host IDs, or when the record's host may not
+    /// be the install that ran the command. For example, imported history has no reliable host.
+    pub host_id: Option<HostId>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -469,6 +475,7 @@ impl History {
             deleted_at,
             shell,
             author_kind,
+            host_id: None,
         }
     }
 
@@ -626,6 +633,7 @@ impl History {
             deleted_at: deleted_at.map(OffsetDateTime::from_unix_nanos_u64),
             shell,
             author_kind,
+            host_id: None,
         })
     }
 
@@ -997,6 +1005,7 @@ mod tests {
         deleted_at: None,
         shell: None,
         author_kind: None,
+        host_id: None,
     })]
     #[case::deleted(History {
         id: "66d16cbee7cd47538e5c5b8b44e9006e".parse().unwrap(),
@@ -1012,6 +1021,7 @@ mod tests {
         deleted_at: Some(datetime!(2023-11-19 20:18 +00:00)),
         shell: Some("bash".into()),
         author_kind: Some(AuthorKind::User),
+        host_id: None,
     })]
     #[case::with_author_and_intent(History {
         id: "66d16cbee7cd47538e5c5b8b44e9006e".parse().unwrap(),
@@ -1027,6 +1037,7 @@ mod tests {
         deleted_at: None,
         shell: Some("fish".into()),
         author_kind: Some(AuthorKind::Agent),
+        host_id: None,
     })]
     fn serialize_deserialize_roundtrip(#[case] history: History) {
         let serialized = history.serialize().expect("failed to serialize history");
@@ -1078,6 +1089,7 @@ mod tests {
             deleted_at: Some(time::OffsetDateTime::from_unix_timestamp(1_784_080_673).unwrap()),
             shell: Some("zsh".into()),
             author_kind: None,
+            host_id: None,
         }
     }
 

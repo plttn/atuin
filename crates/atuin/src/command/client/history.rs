@@ -770,6 +770,7 @@ impl TailEvent {
                 shell: normalize_optional_string(history.shell),
                 deleted_at: None,
                 author_kind: author_kind.into(),
+                host_id: None,
             },
         })
     }
@@ -1368,6 +1369,7 @@ mod tests {
                 deleted_at: None,
                 shell: Some("zsh".into()),
                 author_kind: Some(AuthorKind::Agent),
+                host_id: None,
             },
         }
     }
