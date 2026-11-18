@@ -13,6 +13,24 @@ While you work, Atuin records:
 5. The hostname + user of the machine
 6. The shell session you ran it in
 
+### Hostnames on macOS
+
+On macOS, Atuin records the hostname that stays the same across networks. The system hostname
+can change when you join a different network, because macOS can get it from DHCP or DNS.
+Atuin uses the first available name in this order:
+
+1. The `ATUIN_HOST_NAME` environment variable
+2. The `HostName` that `scutil --set HostName` sets
+3. The local hostname that System Settings shows under General > Sharing, without the `.local`
+   suffix. For example, Atuin records `My-MacBook-Pro.local` as `My-MacBook-Pro`.
+4. The system hostname
+
+Earlier versions of Atuin recorded the system hostname. Existing entries keep that name. The
+[host filter](advanced-usage.md#filter-mode) can find them by install ID or by an older name linked
+to that ID. On upgrade, Atuin fills in IDs where the records provide enough information. Some
+older names may stay absent from the host filter if no surviving entry links them to the current
+install. Global search still finds those entries.
+
 ## Opening and using the TUI
 
 At any time, you can open the TUI with the default keybindings of the up arrow, or `ctrl-r`.

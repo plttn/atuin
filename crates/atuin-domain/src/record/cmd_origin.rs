@@ -21,13 +21,30 @@ impl<T: Into<String>> CmdHost<T> {
 }
 
 impl CmdHost<String> {
+    /// The name of this host.
+    ///
+    /// The name is `ATUIN_HOST_NAME` when that variable is set. Otherwise, on macOS, the name
+    /// comes from `atuin_common::os::macos::hostname::current`. If neither gives a name, the
+    /// name is the system hostname, or `unknown-host` when the system has none.
+    #[must_use]
     pub fn probe_current() -> Self {
         atuin_common::env::var("ATUIN_HOST_NAME")
             .ok()
+            .or_else(platform_hostname)
             .or_else(|| whoami::hostname().ok())
             .map(Self)
             .unwrap_or_default()
     }
+}
+
+#[cfg(target_os = "macos")]
+fn platform_hostname() -> Option<String> {
+    atuin_common::os::macos::hostname::current()
+}
+
+#[cfg(not(target_os = "macos"))]
+const fn platform_hostname() -> Option<String> {
+    None
 }
 
 impl<T> CmdHost<T> {
